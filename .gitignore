@@ -1,0 +1,133 @@
+# ----------------------------------------
+# OS GENERIC
+# ----------------------------------------
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+
+# ----------------------------------------
+# PYTHON
+# ----------------------------------------
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+pip-wheel-metadata/
+*.log
+
+# Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+
+# Jupyter
+.ipynb_checkpoints
+
+# -------------------------------
+# NODE
+# -------------------------------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-store/
+
+# Next.js / Vite
+.next/
+out/
+.vite/
+
+# ----------------------------------------
+# DOCKER
+# ----------------------------------------
+docker-compose.override.yml
+docker-data/
+.docker/
+
+# ----------------------------------------
+# IDE / EDITOR
+# ----------------------------------------
+# VSCode
+.vscode/
+.history/
+*.code-workspace
+
+# PyCharm / IntelliJ
+.idea/
+*.iml
+
+# Eclipse
+.project
+.classpath
+.cproject
+
+# Sublime
+*.sublime-workspace
+*.sublime-project
+
+# ----------------------------------------
+# GIT
+# ----------------------------------------
+*.orig
+*.rej
+
+# ----------------------------------------
+# ENV / KEYS
+# ----------------------------------------
+.env
+.env.*
+*.key
+*.pem
+*.crt
+*.cert
+*.p12
+secrets.json
+
+# ----------------------------------------
+# OTHER BUILD ARTIFACTS
+# ----------------------------------------
+*.tar
+*.gz
+*.zip
+*.7z
+*.rar
+
+# Logs
+logs/
+*.log
+
+# Coverage
+htmlcov/
+.coverage
+.coverage.*
+.cache/
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+
+# ----------------------------------------
+# FRONTEND BUILD OUTPUT
+# ----------------------------------------
+dist/
+build/
+public/build/
+coverage/
