@@ -4,3 +4,5 @@ loguru
 pymongo  
 python-dotenv
 logging
+pydantic_settings
+click

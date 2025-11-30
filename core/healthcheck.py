@@ -1,7 +1,10 @@
-from utils.logging import get_logger
-
-logger = get_logger(__name__)
+from storage.db import db_healthcheck, get_db
 
 def healthcheck():
-    logger.info("Running healthcheck")
-    return {"status": "ok"}
+    ok = db_healthcheck()
+    if not ok:
+        return {"status": "error", "db": "unreachable"}
+
+    db = get_db()
+    db.health.insert_one({"check": "ok"})
+    return {"status": "ok", "db": "connected"}
