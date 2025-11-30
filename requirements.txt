@@ -1,0 +1,6 @@
+httpx
+pydantic
+loguru
+pymongo  
+python-dotenv
+logging
