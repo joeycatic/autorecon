@@ -6,3 +6,4 @@ python-dotenv
 logging
 pydantic_settings
 click
+socket
