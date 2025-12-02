@@ -1,73 +1,31 @@
 import click
+import re
 from core.healthcheck import healthcheck
 from core.scanner.alive_scanner import AliveScanner, AliveLevel
 from core.scanner.socket_port_scanner import SocketPortScanner, PortLevel
-from storage.alive_repo import save_alive_results, save_dead_results
-from typing import Dict, Any
+from storage.alive_repo import save_alive_results
+from storage.open_port_repo import save_open_port_results
+from utils.cli_formatting import format_alive_result_line, format_port_result_line
 
+PORT_RANGE_REGEX = re.compile(r"^\d{1,5}-\d{1,5}$")
 
-def format_alive_result_line(r: Dict[str, Any]) -> str:
-    host = r["host"]
-    level = r["level"]
-    status = r.get("status")
-    reason = r.get("reason")
+def validate_port_range(ctx, param, value):
+    if value is None:
+        return None
 
-    if level == AliveLevel.STRONG.value:
-        symbol = "[💚]"
-        color = "green"
-        detail = f"{status} (strong)"
-    elif level == AliveLevel.WEAK.value:
-        symbol = "[💛]"
-        color = "yellow"
-        detail = f"{status} (weak)"
-    elif level == AliveLevel.DNS_ONLY.value:
-        symbol = "[💙]"
-        color = "blue"
-        detail = "DNS only / no HTTP"
-    else:  
-        symbol = "[❌]"
-        color = "red"
-        detail = reason or "dead"
+    if not PORT_RANGE_REGEX.match(value):
+        raise click.BadParameter("Format must be <start>-<end>, e.g. 10-200")
 
-    text = f"{symbol} {host} → {detail}"
-    return click.style(text, fg=color)
+    start, end = map(int, value.split("-"))
 
-def format_port_result_line(r: Dict[str, Any]) -> str:
-    host = r["host"]
-    ip = r["ip"]
-    port = r["port"]
-    level = r["level"]
+    if start < 1 or end > 65535:
+        raise click.BadParameter("Port range must be between 1 and 65535")
 
-    if level == PortLevel.SAFE.value:
-        symbol = "[💚]"
-        color = "green"
-        level = PortLevel.SAFE.value
-    elif level == PortLevel.MEDIUM.value:
-        symbol = "[💛]"
-        color = "yellow"
-        level = PortLevel.MEDIUM.value
-    elif level == PortLevel.HIGH.value:
-        symbol = "[🧡]"
-        color = 214
-        level = PortLevel.HIGH.value
-    elif level == PortLevel.CRITICAL.value:
-        symbol = "[❤️]"
-        color = "red"
-        level = PortLevel.CRITICAL.value
-    elif level == PortLevel.WEB.value:
-        symbol = "[💙]"
-        color = "blue"
-        level = PortLevel.WEB.value
-    else:  
-        symbol = "[❌]"
-        color = "red"
-        level = "Unreacheable"
+    if start > end:
+        raise click.BadParameter("Start port must be less than end port")
 
-    text = f"{symbol} {level} {port} → {ip}"
-
-    return click.style(text, color)
+    return start, end
     
-
 
 @click.group()
 def cli():
@@ -117,14 +75,24 @@ def alive(target):
 
 @cli.command()
 @click.option("--target", "-t", required=True, help="Target root domain, e. g. example.com")
-@click.option("--profile", "-p", required=False, help="Specify ports")
-def port(target, profile):
+@click.option("--ports", "-p", required=False, callback=validate_port_range, help="Choose a port range, <int>-<int>")
+@click.option("--fast", is_flag=True, help="Fast port scan")
+def port(target, ports, fast):
     """Scan for open ports"""
-    click.echo(click.style(f"[*] Scanning alive ports for {target}", fg="cyan", bold=True))
+    click.echo(click.style(f"[*] Scanning open ports for {target}", fg="cyan", bold=True))
     click.echo("")
 
-    scanner = SocketPortScanner(target)
-    results = scanner.scan()
+    start, end = ports or (1, 65535)
+
+    scanner = None
+    results = None
+
+    if fast:
+        scanner = SocketPortScanner(target)
+        results = scanner.fast_scan()
+    else:
+        scanner = SocketPortScanner(target)
+        results = scanner.scan(start_port=start, end_port=end)
 
     safe = medium = high = critical = web = 0
 
@@ -144,6 +112,8 @@ def port(target, profile):
             case PortLevel.WEB.value:
                 web += 1
 
+    save_open_port_results(results)
+
     click.echo()
     click.echo(click.style("Summary:", bold=True))
     click.echo(click.style(f"  SAFE     : {safe}", fg="green"))
@@ -151,7 +121,8 @@ def port(target, profile):
     click.echo(click.style(f"  HIGH     : {high}", fg=214))
     click.echo(click.style(f"  CRITICAL : {critical}", fg="red"))
     click.echo(click.style(f"  WEB      : {web}", fg="blue"))
-    #click.echo(click.style("Results saved to MongoDB (alive_hosts).", fg="magenta"))
+    click.echo(click.style("Results saved to MongoDB (open_ports).", fg="magenta"))
+    click.echo(f"Scan finished in {scanner.duration:.2f} seconds")
 
 @cli.command()
 @click.option("--target", required=True, help="Target root domain, e. g. example.com")

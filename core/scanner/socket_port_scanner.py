@@ -1,5 +1,6 @@
 import socket
-import re
+import time
+import itertools
 from urllib.parse import urlparse
 from enum import Enum
 from concurrent.futures import ThreadPoolExecutor
@@ -12,9 +13,10 @@ class PortLevel(str, Enum):
     WEB = "web"
 
 class SocketPortScanner():
-    def __init__(self, target):
+    def __init__(self, target, timeout=0.3, max_workers=500):
         self.target = target
-        self.timeout = 0.3
+        self.timeout = timeout
+        self.max_workers = max_workers
 
         self.PORT_LEVELS = {
             "safe": [80, 443, 53, 123, 587, 25, 110, 143],
@@ -54,28 +56,59 @@ class SocketPortScanner():
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 s.settimeout(self.timeout)
-
-                s.connect((ip, port))
-                return port, ip
-        except:
+                result = s.connect_ex((ip, port))
+                if result == 0:     # 0 = Verbindung erfolgreich
+                    return port, ip
+                return None
+        except Exception:
             return None
 
-    def scan(self):
+
+    def scan(self, start_port=1, end_port=65535):
+        start_time = time.perf_counter()
         host, ip = self.extract_ip()
+        ports = range(start_port, end_port + 1)
         
-        with ThreadPoolExecutor(max_workers=100) as executor:
-            futures = [executor.submit(self.scan_port, ip, port) for port in range(1, 65536)]
+        with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
+            for result in executor.map(self.scan_port, itertools.repeat(ip), ports):
+                if result:
+                    port, ip = result
+                    level = self.set_profile(port)
+                    self.result.append({
+                        "host": host,
+                        "ip": ip,
+                        "port": port,
+                        "level": level
+                    })
+        
+        duration = time.perf_counter() - start_time
+        self.duration = duration 
+        return self.result   
 
-        for f in futures:
-            result = f.result()
-            if result:
-                port, ip = result
-                level = self.set_profile(port)
-                self.result.append({
-                    "host": host,
-                    "ip": ip,
-                    "port": port,
-                    "level": level
-                })
+    def fast_scan(self):
+        start_time = time.perf_counter()
+        host, ip = self.extract_ip()
+        ports = set(
+            self.PORT_LEVELS["safe"] +
+            self.PORT_LEVELS["medium"] +
+            self.PORT_LEVELS["high"] +
+            self.PORT_LEVELS["critical"] +
+            self.PORT_LEVELS["web"]
+        )
 
-        return self.result         
+        with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
+            for result in executor.map(self.scan_port, itertools.repeat(ip), ports):
+                if result:
+                    port, ip = result
+                    level = self.set_profile(port)
+                    self.result.append({
+                        "host": host,
+                        "ip": ip,
+                        "port": port,
+                        "level": level
+                    })
+
+        duration = time.perf_counter() - start_time
+        self.duration = duration 
+        return self.result
+      
