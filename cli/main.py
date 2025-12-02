@@ -48,7 +48,7 @@ def format_port_result_line(r: Dict[str, Any]) -> str:
         level = PortLevel.MEDIUM.value
     elif level == PortLevel.HIGH.value:
         symbol = "[🧡]"
-        color = "blue"
+        color = 214
         level = PortLevel.HIGH.value
     elif level == PortLevel.CRITICAL.value:
         symbol = "[❤️]"
@@ -151,7 +151,7 @@ def port(target, profile):
     click.echo(click.style(f"  HIGH     : {high}", fg=214))
     click.echo(click.style(f"  CRITICAL : {critical}", fg="red"))
     click.echo(click.style(f"  WEB      : {web}", fg="blue"))
-    click.echo(click.style("Results saved to MongoDB (alive_hosts).", fg="magenta"))
+    #click.echo(click.style("Results saved to MongoDB (alive_hosts).", fg="magenta"))
 
 @cli.command()
 @click.option("--target", required=True, help="Target root domain, e. g. example.com")
