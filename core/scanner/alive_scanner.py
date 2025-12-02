@@ -1,5 +1,33 @@
 import httpx
 import socket
+from enum import Enum
+from typing import List, Dict, Any
+
+class AliveLevel(str, Enum):
+    STRONG = "strong"
+    WEAK = "weak"
+    DNS_ONLY = "dns_only"
+    DEAD = "dead"
+
+def ClassifyResult(alive: bool, status: int | None, reason: str | None) -> AliveLevel:
+    if not alive:
+        if reason == "DNS failed":
+            return AliveLevel.DEAD
+        if reason == "HTTP unreacheable":
+            return AliveLevel.DNS_ONLY
+        return AliveLevel.DEAD
+    
+    if status == None:
+        return AliveLevel.DNS_ONLY
+    
+    if 200 <= status <= 399:
+        return AliveLevel.STRONG
+    
+    if 400 <= status <= 599:
+        return AliveLevel.WEAK
+    
+    return AliveLevel.WEAK
+
 
 with open("subdomain_wordlist.txt", "r", encoding="utf-8") as f:
     WORDLIST = [line.strip() for line in f if line.strip()]
@@ -27,33 +55,43 @@ class AliveScanner:
                 continue
         return None, None
     
-    def scan(self):
+    def scan(self) -> List[Dict[str, Any]]:
         results = []
         for sub in WORDLIST:
             host = f"{sub}.{self.target}"
 
             if not self.resolve(host):
+                alive = False
+                status = None
+                reason = "DNS failed"
+                level = ClassifyResult(alive, status, reason)
                 results.append({
                     "host": host,
-                    "alive": False,
-                    "reason": "DNS failed"
+                    "alive": alive,
+                    "status": status,
+                    "reason": reason,
+                    "level": level
                 })
                 continue
 
             url, status = self.check_http(host)
 
             if url:
-                results.append({
-                    "host": host,
-                    "alive": True,
-                    "url": url,
-                    "status": status
-                })
+                alive = True
+                reason = None
             else:
-                results.append({
+                alive = False
+                reason = "HTTP unreacheable"
+
+            level = ClassifyResult(alive, status, reason) 
+             
+            results.append({
                     "host": host,
-                    "alive": False,
-                    "reason": "HTTP unreachable"
+                    "alive": alive,
+                    "url": url,
+                    "status": status,
+                    "reason": reason,
+                    "level": level
                 })
 
         return results
