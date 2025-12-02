@@ -29,7 +29,6 @@ def alive(target):
             print(f"[✓] {r['host']} ⇒ {r['status']}")
             alive.append(r)
         else:
-            print(f"[✗] {r['host']} ⇒ {r['reason']}")
             dead.append(r)
     
     if alive:
