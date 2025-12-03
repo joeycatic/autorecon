@@ -2,6 +2,7 @@ import httpx
 import socket
 from enum import Enum
 from typing import List, Dict, Any
+import time
 
 class AliveLevel(str, Enum):
     STRONG = "strong"
@@ -56,6 +57,7 @@ class AliveScanner:
         return None, None
     
     def scan(self) -> List[Dict[str, Any]]:
+        start_time = time.perf_counter()
         results = []
         for sub in WORDLIST:
             host = f"{sub}.{self.target}"
@@ -84,7 +86,7 @@ class AliveScanner:
                 reason = "HTTP unreacheable"
 
             level = ClassifyResult(alive, status, reason) 
-             
+
             results.append({
                     "host": host,
                     "alive": alive,
@@ -94,4 +96,6 @@ class AliveScanner:
                     "level": level
                 })
 
+        duration = time.perf_counter() - start_time
+        self.duration = duration 
         return results

@@ -3,9 +3,10 @@ import re
 from core.healthcheck import healthcheck
 from core.scanner.alive_scanner import AliveScanner, AliveLevel
 from core.scanner.socket_port_scanner import SocketPortScanner, PortLevel
+from core.scanner.nmap_port_scanner import NmapPortScanner
 from storage.alive_repo import save_alive_results
 from storage.open_port_repo import save_open_port_results
-from utils.cli_formatting import format_alive_result_line, format_port_result_line
+from utils.cli_formatting import alive_results_table, port_results_table, rich_nmap_table
 
 PORT_RANGE_REGEX = re.compile(r"^\d{1,5}-\d{1,5}$")
 
@@ -42,17 +43,15 @@ def check():
 def alive(target):
     """Scan for alive subdomains"""
     click.echo(click.style(f"[*] Scanning alive hosts for {target}", fg="cyan", bold=True))
+    click.echo()
 
     scanner = AliveScanner(target)
     results = scanner.scan()
-
     
     strong = weak = dns_only = dead = 0
 
+    alive_results_table(results)
     for r in results:
-        line = format_alive_result_line(r)
-        click.echo(line)
-
         match r["level"]:
             case AliveLevel.STRONG.value:
                 strong += 1
@@ -72,6 +71,8 @@ def alive(target):
     click.echo(click.style(f"  DNS_ONLY : {dns_only}", fg="blue"))
     click.echo(click.style(f"  DEAD     : {dead}", fg="red"))
     click.echo(click.style("Results saved to MongoDB (alive_hosts).", fg="magenta"))
+    click.echo(f"Scan finished in {scanner.duration:.2f} seconds")
+
 
 @cli.command()
 @click.option("--target", "-t", required=True, help="Target root domain, e. g. example.com")
@@ -80,26 +81,23 @@ def alive(target):
 def port(target, ports, fast):
     """Scan for open ports"""
     click.echo(click.style(f"[*] Scanning open ports for {target}", fg="cyan", bold=True))
-    click.echo("")
-
-    start, end = ports or (1, 65535)
+    click.echo()
 
     scanner = None
     results = None
 
+    scanner = SocketPortScanner(target)
+
     if fast:
-        scanner = SocketPortScanner(target)
         results = scanner.fast_scan()
     else:
-        scanner = SocketPortScanner(target)
-        results = scanner.scan(start_port=start, end_port=end)
+        results = scanner.scan()
 
     safe = medium = high = critical = web = 0
 
-    for r in results:
-        line = format_port_result_line(r)
-        click.echo(line)
+    port_results_table(results)
 
+    for r in results:
         match r["level"]:
             case PortLevel.SAFE.value:
                 safe += 1
@@ -124,11 +122,24 @@ def port(target, ports, fast):
     click.echo(click.style("Results saved to MongoDB (open_ports).", fg="magenta"))
     click.echo(f"Scan finished in {scanner.duration:.2f} seconds")
 
-@cli.command()
-@click.option("--target", required=True, help="Target root domain, e. g. example.com")
-def detailed_port_scan(target):
-    pass
 
+@cli.command()
+@click.option("--target", "-t", required=True, help="Target root domain, e. g. example.com")
+@click.option("--ports", "-p", default="1-1000", show_default=True, callback=validate_port_range)
+@click.option("--aggressive", "-a", is_flag=True, help="Fast port scan")
+def nmap(target, ports, aggressive):
+    click.echo(click.style(f"[*] Scanning open ports for {target}", fg="cyan", bold=True))
+    click.echo("")
+
+    print(ports)
+    scanner = NmapPortScanner(target)
+
+    start_port, end_port = ports or (1, 1000)
+    results = scanner.scan(start_port, end_port, aggressive)
+
+    rich_nmap_table(results, target)
+    
+    click.echo(f"Scan finished in {scanner.duration:.2f} seconds")
 
 if __name__ == "__main__":
     cli()

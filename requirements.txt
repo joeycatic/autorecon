@@ -7,3 +7,4 @@ logging
 pydantic_settings
 click
 socket
+python-nmap
