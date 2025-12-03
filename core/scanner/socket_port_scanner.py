@@ -13,7 +13,7 @@ class PortLevel(str, Enum):
     WEB = "web"
 
 class SocketPortScanner():
-    def __init__(self, target, timeout=0.3, max_workers=500):
+    def __init__(self, target, timeout=0.3, max_workers=800):
         self.target = target
         self.timeout = timeout
         self.max_workers = max_workers
