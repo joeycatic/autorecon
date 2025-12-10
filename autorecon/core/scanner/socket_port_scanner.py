@@ -13,7 +13,7 @@ class PortLevel(str, Enum):
     WEB = "web"
 
 class SocketPortScanner():
-    def __init__(self, target, timeout=0.3, max_workers=800):
+    def __init__(self, target, timeout=0.4, max_workers=700):
         self.target = target
         self.timeout = timeout
         self.max_workers = max_workers
@@ -111,4 +111,3 @@ class SocketPortScanner():
         duration = time.perf_counter() - start_time
         self.duration = duration 
         return self.result
-      

@@ -3,6 +3,7 @@ import socket
 from enum import Enum
 from typing import List, Dict, Any
 import time
+import pathlib
 
 class AliveLevel(str, Enum):
     STRONG = "strong"
@@ -30,7 +31,10 @@ def ClassifyResult(alive: bool, status: int | None, reason: str | None) -> Alive
     return AliveLevel.WEAK
 
 
-with open("data/subdomain_wordlist.txt", "r", encoding="utf-8") as f:
+BASE_DIR = pathlib.Path(__file__).resolve().parent.parent.parent 
+print(BASE_DIR)
+DATA_FILE = BASE_DIR / "data" / "subdomain_wordlist.txt"
+with open(DATA_FILE, "r", encoding="utf-8") as f:
     WORDLIST = [line.strip() for line in f if line.strip()]
 
 class AliveScanner:

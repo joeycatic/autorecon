@@ -6,6 +6,6 @@ python-dotenv
 logging
 pydantic_settings
 click
-socket
+sockets
 python-nmap
 rich

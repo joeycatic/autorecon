@@ -2,22 +2,23 @@
 name = "autorecon"
 version = "0.1.0"
 dependencies = [
-    "click"
+    "click",
     "httpx",
     "pydantic",
     "loguru",
     "pymongo",  
     "python-dotenv",
-    "logging",
-    "pydantic_settings"
-    "click",
-    "socket",
+    "pydantic-settings",
+    "sockets",
     "python-nmap",
-    "rich"
+    "rich",
 ]
 
 [project.scripts]
 autorecon = "autorecon.cli.main:cli"
+
+[tool.setuptools.package-data]
+"autorecon.data" = ["*.txt"]
 
 [tool.setuptools]
 packages = { find = { include = ["autorecon*"] } }
