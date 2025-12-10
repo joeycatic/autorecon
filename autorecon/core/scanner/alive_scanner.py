@@ -30,7 +30,7 @@ def ClassifyResult(alive: bool, status: int | None, reason: str | None) -> Alive
     return AliveLevel.WEAK
 
 
-with open("subdomain_wordlist.txt", "r", encoding="utf-8") as f:
+with open("data/subdomain_wordlist.txt", "r", encoding="utf-8") as f:
     WORDLIST = [line.strip() for line in f if line.strip()]
 
 class AliveScanner:

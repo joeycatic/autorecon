@@ -1,0 +1,23 @@
+[project]
+name = "autorecon"
+version = "0.1.0"
+dependencies = [
+    "click"
+    "httpx",
+    "pydantic",
+    "loguru",
+    "pymongo",  
+    "python-dotenv",
+    "logging",
+    "pydantic_settings"
+    "click",
+    "socket",
+    "python-nmap",
+    "rich"
+]
+
+[project.scripts]
+autorecon = "autorecon.cli.main:cli"
+
+[tool.setuptools]
+packages = { find = { include = ["autorecon*"] } }

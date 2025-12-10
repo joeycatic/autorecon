@@ -1,7 +1,7 @@
 from functools import lru_cache
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure
-from utils.config import settings
+from autorecon.utils.config import settings
 
 
 @lru_cache

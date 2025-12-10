@@ -1,4 +1,4 @@
-from storage.db import db_healthcheck, get_db
+from autorecon.storage.db import db_healthcheck, get_db
 
 def healthcheck():
     ok = db_healthcheck()

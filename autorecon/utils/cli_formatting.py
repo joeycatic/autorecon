@@ -1,5 +1,5 @@
-from core.scanner.socket_port_scanner import PortLevel
-from core.scanner.alive_scanner import AliveLevel
+from autorecon.core.scanner.socket_port_scanner import PortLevel
+from autorecon.core.scanner.alive_scanner import AliveLevel
 from rich.table import Table
 from rich.console import Console
 from rich.panel import Panel

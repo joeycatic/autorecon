@@ -1,12 +1,12 @@
 import click
 import re
-from core.healthcheck import healthcheck
-from core.scanner.alive_scanner import AliveScanner, AliveLevel
-from core.scanner.socket_port_scanner import SocketPortScanner, PortLevel
-from core.scanner.nmap_port_scanner import NmapPortScanner
-from storage.alive_repo import save_alive_results
-from storage.open_port_repo import save_open_port_results
-from utils.cli_formatting import alive_results_table, port_results_table, rich_nmap_table
+from autorecon.core.healthcheck import healthcheck
+from autorecon.core.scanner.alive_scanner import AliveScanner, AliveLevel
+from autorecon.core.scanner.socket_port_scanner import SocketPortScanner, PortLevel
+from autorecon.core.scanner.nmap_port_scanner import NmapPortScanner
+from autorecon.storage.alive_repo import save_alive_results
+from autorecon.storage.open_port_repo import save_open_port_results
+from autorecon.utils.cli_formatting import alive_results_table, port_results_table, rich_nmap_table
 
 PORT_RANGE_REGEX = re.compile(r"^\d{1,5}-\d{1,5}$")
 
