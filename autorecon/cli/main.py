@@ -83,7 +83,6 @@ def port(target, ports, fast):
     click.echo(click.style(f"[*] Scanning open ports for {target}", fg="cyan", bold=True))
     click.echo()
 
-    scanner = None
     results = None
 
     scanner = SocketPortScanner(target)

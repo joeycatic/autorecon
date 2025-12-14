@@ -28,7 +28,7 @@ class NmapPortScanner:
         else:
             port_range = f"{start_port}-{end_port}"
 
-        args = "-sV -T5" if aggressive else "-T5"
+        args = "-sV -T4" if aggressive else "-T5"
         out = self.nm.scan(ip, port_range, arguments=args)
 
         result = []        
